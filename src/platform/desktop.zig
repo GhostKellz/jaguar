@@ -10,7 +10,7 @@ pub const DesktopApp = struct {
     width: u32,
     height: u32,
     should_close: bool,
-    
+
     // TODO: Add actual windowing system (GLFW, SDL, etc.)
     // For now this is a stub implementation
 

@@ -18,7 +18,7 @@ pub fn text(content: []const u8) Widget {
     };
 }
 
-pub fn button(label: []const u8, on_click: ?*const fn() void) Widget {
+pub fn button(label: []const u8, on_click: ?*const fn () void) Widget {
     return Widget{
         .type = .Button,
         .content = label,

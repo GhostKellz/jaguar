@@ -16,8 +16,8 @@ pub const PlatformConfig = struct {
 
 /// Platform abstraction - routes to appropriate implementation based on target
 pub const PlatformApp = switch (@import("builtin").target.os.tag) {
-    .freestanding => wasm.WasmApp,  // WASM target
-    else => desktop.DesktopApp,      // Native desktop
+    .freestanding => wasm.WasmApp, // WASM target
+    else => desktop.DesktopApp, // Native desktop
 };
 
 /// Check if we're running on WASM

@@ -6,7 +6,7 @@ const Context = @import("../core/context.zig").Context;
 pub const WebConfig = struct {
     title: []const u8 = "Jaguar Web App",
     canvas_id: []const u8 = "jaguar-canvas",
-    root: ?*const fn(*Context) void = null,
+    root: ?*const fn (*Context) void = null,
 };
 
 /// Start a Jaguar web application

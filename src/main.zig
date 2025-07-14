@@ -5,29 +5,25 @@ pub fn main() !void {
     std.debug.print("🐆 Jaguar GUI Framework - Demo\n", .{});
 
     // Create and run a desktop application
-    var app = try jaguar.App.init(.{ 
-        .title = "Jaguar Demo", 
-        .width = 800, 
-        .height = 600 
-    });
+    var app = try jaguar.App.init(.{ .title = "Jaguar Demo", .width = 800, .height = 600 });
     defer app.deinit();
 
     std.debug.print("Starting Jaguar desktop app...\n", .{});
-    
+
     // For now just print that we're running
     // TODO: Implement actual UI loop once we have windowing
     try jaguar.bufferedPrint();
-    
+
     // Demo: create some widgets using the high-level API
     const text_widget = jaguar.widgets.text("Hello, Jaguar! 🐆");
     const button_widget = jaguar.widgets.button("Click me!", null);
     const input_widget = jaguar.widgets.input("Type something...");
-    
+
     std.debug.print("Created widgets:\n", .{});
     std.debug.print("  Text: {s}\n", .{text_widget.content});
     std.debug.print("  Button: {s}\n", .{button_widget.content});
     std.debug.print("  Input placeholder: {s}\n", .{input_widget.data.input.placeholder});
-    
+
     // For now, we'll skip the actual event loop since we don't have windowing yet
     // try app.run();
 }

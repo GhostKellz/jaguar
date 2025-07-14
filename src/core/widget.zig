@@ -44,22 +44,22 @@ pub const Widget = struct {
     background_color: ?Color = null,
     border_color: ?Color = null,
     border_width: f32 = 0.0,
-    
+
     // Widget-specific data
     data: WidgetData = .{ .none = {} },
-    
+
     // Event callbacks
-    on_click: ?*const fn() void = null,
-    on_hover: ?*const fn() void = null,
-    on_change: ?*const fn([]const u8) void = null,
+    on_click: ?*const fn () void = null,
+    on_hover: ?*const fn () void = null,
+    on_change: ?*const fn ([]const u8) void = null,
 
     const Self = @This();
 
     pub fn hitTest(self: *const Self, x: f32, y: f32) bool {
-        return x >= self.rect.x and 
-               x <= self.rect.x + self.rect.width and
-               y >= self.rect.y and 
-               y <= self.rect.y + self.rect.height;
+        return x >= self.rect.x and
+            x <= self.rect.x + self.rect.width and
+            y >= self.rect.y and
+            y <= self.rect.y + self.rect.height;
     }
 };
 

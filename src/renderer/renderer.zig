@@ -4,10 +4,10 @@ const Widget = @import("../core/widget.zig").Widget;
 const Context = @import("../core/context.zig").Context;
 
 pub const RenderBackend = enum {
-    Software,  // CPU-based fallback
-    OpenGL,    // Desktop OpenGL
-    WebGL,     // Browser WebGL
-    Vulkan,    // High-performance Vulkan (future)
+    Software, // CPU-based fallback
+    OpenGL, // Desktop OpenGL
+    WebGL, // Browser WebGL
+    Vulkan, // High-performance Vulkan (future)
 };
 
 pub const Renderer = struct {

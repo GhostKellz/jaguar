@@ -10,7 +10,7 @@ pub const Context = struct {
     mouse_pos: [2]f32,
     mouse_down: [3]bool, // left, right, middle
     keys_down: std.AutoArrayHashMap(u32, bool),
-    
+
     const Self = @This();
 
     pub fn init(allocator: std.mem.Allocator) !Self {
@@ -80,7 +80,7 @@ pub const Context = struct {
     }
 
     // Immediate mode UI helpers
-    
+
     /// Create a text widget
     pub fn text(self: *Self, content: []const u8) !void {
         try self.addWidget(Widget{
@@ -97,9 +97,9 @@ pub const Context = struct {
             .content = label,
             .rect = .{ .x = 0, .y = 0, .width = 100, .height = 30 },
         };
-        
+
         try self.addWidget(widget);
-        
+
         // Check if button was clicked
         // TODO: Implement proper hit testing
         _ = config;
@@ -122,5 +122,5 @@ pub const Context = struct {
 };
 
 pub const ButtonConfig = struct {
-    onClick: ?*const fn(*Context) void = null,
+    onClick: ?*const fn (*Context) void = null,
 };

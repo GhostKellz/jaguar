@@ -145,7 +145,7 @@ pub fn build(b: *std.Build) void {
 
     // Examples
     const examples_step = b.step("examples", "Build and run examples");
-    
+
     const simple_example = b.addExecutable(.{
         .name = "simple",
         .root_module = b.createModule(.{
@@ -157,18 +157,18 @@ pub fn build(b: *std.Build) void {
             },
         }),
     });
-    
+
     const run_simple = b.addRunArtifact(simple_example);
     examples_step.dependOn(&run_simple.step);
 
     // WASM build target
     const wasm_step = b.step("wasm", "Build for WebAssembly");
-    
+
     const wasm_target = b.resolveTargetQuery(.{
         .cpu_arch = .wasm32,
         .os_tag = .freestanding,
     });
-    
+
     const wasm_exe = b.addExecutable(.{
         .name = "jaguar-web",
         .root_module = b.createModule(.{
@@ -180,7 +180,7 @@ pub fn build(b: *std.Build) void {
             },
         }),
     });
-    
+
     wasm_exe.entry = .disabled; // WASM doesn't need a traditional main
     b.installArtifact(wasm_exe);
     wasm_step.dependOn(&b.addInstallArtifact(wasm_exe, .{}).step);

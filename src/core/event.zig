@@ -2,17 +2,17 @@
 const std = @import("std");
 
 pub const Event = union(enum) {
-    MouseMove: [2]f32,           // x, y
-    MouseDown: u8,               // button index (0=left, 1=right, 2=middle)
-    MouseUp: u8,                 // button index
-    MouseWheel: [2]f32,          // dx, dy
-    KeyDown: u32,                // key code
-    KeyUp: u32,                  // key code
-    TextInput: []const u8,       // UTF-8 text
-    WindowResize: [2]u32,        // width, height
+    MouseMove: [2]f32, // x, y
+    MouseDown: u8, // button index (0=left, 1=right, 2=middle)
+    MouseUp: u8, // button index
+    MouseWheel: [2]f32, // dx, dy
+    KeyDown: u32, // key code
+    KeyUp: u32, // key code
+    TextInput: []const u8, // UTF-8 text
+    WindowResize: [2]u32, // width, height
     WindowClose,
-    WindowFocus: bool,           // gained/lost focus
-    WindowMinimize: bool,        // minimized/restored
+    WindowFocus: bool, // gained/lost focus
+    WindowMinimize: bool, // minimized/restored
 };
 
 pub const KeyCode = struct {

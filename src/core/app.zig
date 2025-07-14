@@ -23,7 +23,7 @@ pub const App = struct {
 
     pub fn init(config: AppConfig) !Self {
         const allocator = config.allocator orelse std.heap.page_allocator;
-        
+
         const platform_app = try platform.PlatformApp.init(allocator, .{
             .title = config.title,
             .width = config.width,
@@ -49,11 +49,11 @@ pub const App = struct {
     /// Start the async event loop
     pub fn run(self: *Self) !void {
         self.running = true;
-        
+
         while (self.running) {
             // Poll platform events
             const events = try self.platform_app.pollEvents();
-            
+
             // Process events through context
             for (events) |event| {
                 try self.context.handleEvent(event);
@@ -61,10 +61,10 @@ pub const App = struct {
 
             // Update UI frame
             try self.context.beginFrame();
-            
+
             // User's UI code will be called here via callbacks
             // TODO: Implement UI building phase
-            
+
             try self.context.endFrame();
 
             // Render the frame
@@ -83,7 +83,7 @@ pub const App = struct {
     }
 
     /// Create a window (for multi-window support later)
-    pub fn window(self: *Self, config: WindowConfig, build_fn: *const fn(*Context) void) !void {
+    pub fn window(self: *Self, config: WindowConfig, build_fn: *const fn (*Context) void) !void {
         _ = config;
         build_fn(&self.context);
     }
