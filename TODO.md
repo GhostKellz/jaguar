@@ -13,21 +13,21 @@ A practical checklist for the first pure Zig frontend library that targets:
 
 ### Core Foundation
 
-* [ ] Project structure and Zig 0.15+ compatibility
-* [ ] `build.zig` with dependency management (phantom, zsync, etc)
-* [ ] Platform abstraction (desktop, WASM, browser)
+* [x] Project structure and Zig 0.15+ compatibility
+* [x] `build.zig` with dependency management (phantom, zsync, etc)
+* [x] Platform abstraction (desktop, WASM, browser)
 * [ ] Async event loop via zsync
 
 ### Rendering Engine
 
-* [ ] Immediate mode UI (egui/ICE-like pattern)
+* [x] Immediate mode UI (egui/ICE-like pattern)
 * [ ] Text and vector rendering (GPU + fallback software mode)
 * [ ] Window/context creation (desktop and browser)
-* [ ] Theming (light/dark, custom palettes)
+* [x] Theming (light/dark, custom palettes)
 
 ### Widget Kit
 
-* [ ] Buttons, inputs, sliders, selects, lists, textareas
+* [x] Buttons, inputs, sliders, selects, lists, textareas
 * [ ] Table/grid layout widgets
 * [ ] Modals/popups, overlays
 * [ ] Markdown & emoji rendering
@@ -35,19 +35,19 @@ A practical checklist for the first pure Zig frontend library that targets:
 
 ### Event Handling
 
-* [ ] Mouse, keyboard, focus, signals
+* [x] Mouse, keyboard, focus, signals
 * [ ] Async events (file/network timers, background jobs)
 * [ ] Drag/drop, clipboard, window resize
 
 ### Dev UX
 
 * [ ] Hot reload support for dev mode
-* [ ] Example apps: admin panel, dashboard, settings
+* [x] Example apps: admin panel, dashboard, settings
 * [ ] Demo: desktop + browser build
 
 ### WASM/Web Targets
 
-* [ ] WASM build pipeline (zig build for browser)
+* [x] WASM build pipeline (zig build for browser)
 * [ ] JS interop for web APIs (file picker, clipboard)
 * [ ] Docker example for self-hosted admin portal
 

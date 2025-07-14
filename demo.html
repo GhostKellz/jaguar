@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐆 Jaguar Web Demo</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #4285f4;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            color: #9aa0a6;
+            margin: 10px 0;
+        }
+        
+        .demo-container {
+            background: #2d2d2d;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        #jaguar-canvas {
+            border: 2px solid #4285f4;
+            border-radius: 8px;
+            background: #ffffff;
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #3367d6;
+        }
+        
+        .info {
+            background: #1e3a8a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .status {
+            color: #34d399;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐆 Jaguar Web Demo</h1>
+        <p>Pure Zig GUI Framework running in WebAssembly</p>
+    </div>
+    
+    <div class="demo-container">
+        <canvas id="jaguar-canvas" width="600" height="400"></canvas>
+        
+        <div class="controls">
+            <button onclick="initJaguar()">Initialize Jaguar</button>
+            <button onclick="testDemo()">Run Demo</button>
+            <button onclick="clearCanvas()">Clear Canvas</button>
+        </div>
+        
+        <div class="info">
+            <p><span class="status">Status:</span> <span id="status">Ready to load WASM</span></p>
+            <p><span class="status">Demo Value:</span> <span id="demo-value">Not loaded</span></p>
+        </div>
+    </div>
+
+    <script>
+        let wasmModule = null;
+        let wasmInstance = null;
+        
+        async function loadWasm() {
+            try {
+                const wasmFile = await fetch('./zig-out/bin/jaguar-web.wasm');
+                const wasmBytes = await wasmFile.arrayBuffer();
+                wasmModule = await WebAssembly.compile(wasmBytes);
+                
+                const imports = {
+                    env: {
+                        // Add any imported functions here if needed
+                    }
+                };
+                
+                wasmInstance = await WebAssembly.instantiate(wasmModule, imports);
+                document.getElementById('status').textContent = 'WASM loaded successfully';
+                return true;
+            } catch (error) {
+                console.error('Failed to load WASM:', error);
+                document.getElementById('status').textContent = 'Failed to load WASM: ' + error.message;
+                return false;
+            }
+        }
+        
+        async function initJaguar() {
+            if (!wasmInstance) {
+                const loaded = await loadWasm();
+                if (!loaded) return;
+            }
+            
+            try {
+                wasmInstance.exports.jaguar_init();
+                document.getElementById('status').textContent = 'Jaguar initialized';
+            } catch (error) {
+                console.error('Failed to initialize Jaguar:', error);
+                document.getElementById('status').textContent = 'Failed to initialize: ' + error.message;
+            }
+        }
+        
+        async function testDemo() {
+            if (!wasmInstance) {
+                await initJaguar();
+            }
+            
+            try {
+                const demoValue = wasmInstance.exports.demo();
+                document.getElementById('demo-value').textContent = demoValue;
+                document.getElementById('status').textContent = 'Demo function called successfully';
+                
+                // Draw something on the canvas to show it's working
+                const canvas = document.getElementById('jaguar-canvas');
+                const ctx = canvas.getContext('2d');
+                
+                ctx.fillStyle = '#4285f4';
+                ctx.fillRect(50, 50, 100, 50);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '16px system-ui';
+                ctx.fillText(`Demo result: ${demoValue}`, 60, 80);
+                
+            } catch (error) {
+                console.error('Failed to run demo:', error);
+                document.getElementById('status').textContent = 'Demo failed: ' + error.message;
+            }
+        }
+        
+        function clearCanvas() {
+            const canvas = document.getElementById('jaguar-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('status').textContent = 'Canvas cleared';
+        }
+        
+        // Handle canvas events
+        document.getElementById('jaguar-canvas').addEventListener('mousemove', (e) => {
+            if (wasmInstance && wasmInstance.exports.jaguar_mouse_move) {
+                const rect = e.target.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                wasmInstance.exports.jaguar_mouse_move(x, y);
+            }
+        });
+        
+        document.getElementById('jaguar-canvas').addEventListener('click', (e) => {
+            if (wasmInstance && wasmInstance.exports.jaguar_mouse_click) {
+                const rect = e.target.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                wasmInstance.exports.jaguar_mouse_click(0, x, y); // 0 = left button
+            }
+        });
+        
+        // Auto-load on page load
+        window.addEventListener('load', () => {
+            document.getElementById('status').textContent = 'Page loaded, ready to initialize';
+        });
+    </script>
+</body>
+</html>

@@ -39,8 +39,19 @@
 ```sh
 git clone https://github.com/ghostkellz/jaguar.git
 cd jaguar
-zig build run # desktop demo
-zig build -Dwasm # browser demo (output to ./dist)
+
+# Desktop demo
+zig build run
+
+# Examples
+zig build examples
+
+# WASM build
+zig build wasm
+
+# Serve WASM demo
+python3 serve_demo.py
+# Then open http://localhost:8000/demo.html
 ```
 
 Or add to your build.zig:
@@ -103,7 +114,34 @@ fn reload_page(ctx: *jaguar.Context) void {
 
 ---
 
-## 🗺️ Roadmap
+## � Current Status
+
+**Jaguar v0.1.0-alpha** - Core foundation is complete!
+
+✅ **Completed:**
+- Pure Zig project structure with Zig 0.15+ compatibility
+- Cross-platform abstraction layer (Desktop/WASM)
+- Immediate mode UI widget system (text, button, input, slider, checkbox)
+- Event handling framework (mouse, keyboard, window events)
+- Theming system with light/dark modes
+- WASM build pipeline with JavaScript interop
+- Working examples and demo applications
+
+🚧 **In Progress:**
+- Windowing system integration (GLFW, SDL)
+- GPU-accelerated rendering (OpenGL, WebGL)
+- Advanced layout engine (flex, grid, constraints)
+- zsync async runtime integration
+
+🔜 **Coming Next:**
+- Hot reload development experience
+- Advanced widgets (tables, trees, graphs)
+- File system access and native dialogs
+- Performance optimization and benchmarks
+
+---
+
+## �🗺️ Roadmap
 
 * [x] Async event loop + zsync integration
 * [x] Core widget set (button, list, text, input, progress)

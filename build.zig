@@ -143,6 +143,48 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_mod_tests.step);
     test_step.dependOn(&run_exe_tests.step);
 
+    // Examples
+    const examples_step = b.step("examples", "Build and run examples");
+    
+    const simple_example = b.addExecutable(.{
+        .name = "simple",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/simple.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "jaguar", .module = mod },
+            },
+        }),
+    });
+    
+    const run_simple = b.addRunArtifact(simple_example);
+    examples_step.dependOn(&run_simple.step);
+
+    // WASM build target
+    const wasm_step = b.step("wasm", "Build for WebAssembly");
+    
+    const wasm_target = b.resolveTargetQuery(.{
+        .cpu_arch = .wasm32,
+        .os_tag = .freestanding,
+    });
+    
+    const wasm_exe = b.addExecutable(.{
+        .name = "jaguar-web",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/wasm_main.zig"),
+            .target = wasm_target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "jaguar", .module = mod },
+            },
+        }),
+    });
+    
+    wasm_exe.entry = .disabled; // WASM doesn't need a traditional main
+    b.installArtifact(wasm_exe);
+    wasm_step.dependOn(&b.addInstallArtifact(wasm_exe, .{}).step);
+
     // Just like flags, top level steps are also listed in the `--help` menu.
     //
     // The Zig build system is entirely implemented in userland, which means
