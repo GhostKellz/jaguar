@@ -39,10 +39,15 @@ pub const DesktopApp = struct {
     }
 
     pub fn render(self: *Self, context: *Context) !void {
-        _ = self;
-        _ = context;
-        // TODO: Implement actual rendering
-        // This will eventually call OpenGL/Vulkan/etc.
+        // Create a renderer if we don't have one
+        var renderer = @import("../renderer/renderer.zig").Renderer.init(self.allocator, .Software) catch return;
+        defer renderer.deinit();
+
+        // Set viewport size
+        renderer.setViewportSize(@floatFromInt(self.width), @floatFromInt(self.height));
+
+        // Render all widgets
+        try renderer.render(context.widgets.items);
     }
 
     pub fn shouldClose(self: *const Self) bool {

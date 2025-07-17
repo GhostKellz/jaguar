@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐆 Jaguar WASM App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 24px;
+        }
+
+        #loading.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 4px solid #ffffff33;
+            border-top: 4px solid #ffffff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-right: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #jaguar-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background-color: #2d2d2d;
+            cursor: default;
+        }
+
+        #error-message {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ff4444;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        #info-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 999;
+            display: none;
+        }
+
+        #info-panel.visible {
+            display: block;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            #info-panel {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 10px;
+            }
+        }
+
+        /* PWA styles */
+        .pwa-install {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            display: none;
+            z-index: 1001;
+        }
+
+        .pwa-install:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <!-- Loading screen -->
+        <div id="loading">
+            <div class="loading-spinner"></div>
+            <div>
+                <div>🐆 Loading Jaguar WASM App...</div>
+                <div style="font-size: 14px; margin-top: 10px; opacity: 0.8;">
+                    Initializing GPU renderer and UI system
+                </div>
+            </div>
+        </div>
+
+        <!-- Error message -->
+        <div id="error-message"></div>
+
+        <!-- Main canvas -->
+        <canvas id="jaguar-canvas"></canvas>
+
+        <!-- Debug info panel -->
+        <div id="info-panel">
+            <div>🐆 Jaguar WASM Debug Info</div>
+            <div id="fps">FPS: --</div>
+            <div id="canvas-size">Canvas: --x--</div>
+            <div id="events">Events: --</div>
+            <div style="margin-top: 5px;">Press F12 for DevTools</div>
+        </div>
+
+        <!-- PWA install prompt -->
+        <button class="pwa-install" id="pwa-install">
+            📱 Install App
+        </button>
+    </div>
+
+    <!-- WASM integration -->
+    <script type="module">
+        import JaguarWasm from './jaguar-wasm.js';
+
+        class JaguarApp {
+            constructor() {
+                this.jaguar = null;
+                this.isDebugMode = localStorage.getItem('jaguar-debug') === 'true';
+                this.fpsCounter = 0;
+                this.lastFpsUpdate = performance.now();
+                this.eventCounter = 0;
+            }
+
+            async init() {
+                try {
+                    this.showLoading(true);
+                    
+                    // Initialize Jaguar WASM
+                    this.jaguar = new JaguarWasm('jaguar-canvas');
+                    await this.jaguar.init('./jaguar-app.wasm');
+
+                    // Setup debug info
+                    if (this.isDebugMode) {
+                        this.setupDebugInfo();
+                    }
+
+                    // Setup PWA
+                    this.setupPWA();
+
+                    // Setup keyboard shortcuts
+                    this.setupKeyboardShortcuts();
+
+                    this.showLoading(false);
+                    this.startRenderLoop();
+
+                    console.log('🐆 Jaguar WASM App initialized successfully');
+
+                } catch (error) {
+                    this.showError('Failed to initialize app: ' + error.message);
+                    console.error('Initialization error:', error);
+                }
+            }
+
+            showLoading(show) {
+                const loading = document.getElementById('loading');
+                if (show) {
+                    loading.classList.remove('hidden');
+                } else {
+                    loading.classList.add('hidden');
+                }
+            }
+
+            showError(message) {
+                const errorDiv = document.getElementById('error-message');
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            }
+
+            setupDebugInfo() {
+                const infoPanel = document.getElementById('info-panel');
+                infoPanel.classList.add('visible');
+
+                setInterval(() => {
+                    this.updateDebugInfo();
+                }, 1000);
+            }
+
+            updateDebugInfo() {
+                const canvas = document.getElementById('jaguar-canvas');
+                document.getElementById('fps').textContent = `FPS: ${this.fpsCounter}`;
+                document.getElementById('canvas-size').textContent = `Canvas: ${canvas.width}x${canvas.height}`;
+                document.getElementById('events').textContent = `Events: ${this.eventCounter}`;
+                
+                this.fpsCounter = 0;
+                this.eventCounter = 0;
+            }
+
+            setupPWA() {
+                let deferredPrompt;
+                const installButton = document.getElementById('pwa-install');
+
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPrompt = e;
+                    installButton.style.display = 'block';
+                });
+
+                installButton.addEventListener('click', async () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        console.log(`PWA install ${outcome}`);
+                        deferredPrompt = null;
+                        installButton.style.display = 'none';
+                    }
+                });
+            }
+
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    // Toggle debug info with F3
+                    if (e.key === 'F3') {
+                        e.preventDefault();
+                        this.isDebugMode = !this.isDebugMode;
+                        localStorage.setItem('jaguar-debug', this.isDebugMode.toString());
+                        
+                        const infoPanel = document.getElementById('info-panel');
+                        if (this.isDebugMode) {
+                            infoPanel.classList.add('visible');
+                            this.setupDebugInfo();
+                        } else {
+                            infoPanel.classList.remove('visible');
+                        }
+                    }
+
+                    // Fullscreen with F11
+                    if (e.key === 'F11') {
+                        e.preventDefault();
+                        if (document.fullscreenElement) {
+                            document.exitFullscreen();
+                        } else {
+                            document.documentElement.requestFullscreen();
+                        }
+                    }
+
+                    this.eventCounter++;
+                });
+            }
+
+            startRenderLoop() {
+                const render = () => {
+                    this.fpsCounter++;
+                    
+                    // Request next frame
+                    if (this.jaguar && this.jaguar.isInitialized) {
+                        this.jaguar.requestFrame();
+                    }
+                    
+                    requestAnimationFrame(render);
+                };
+                
+                render();
+            }
+        }
+
+        // Initialize app when DOM is ready
+        const app = new JaguarApp();
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => app.init());
+        } else {
+            app.init();
+        }
+
+        // Global error handling
+        window.addEventListener('error', (e) => {
+            console.error('Global error:', e.error);
+            app.showError('Unexpected error occurred. Check console for details.');
+        });
+
+        window.addEventListener('unhandledrejection', (e) => {
+            console.error('Unhandled promise rejection:', e.reason);
+            app.showError('Promise error occurred. Check console for details.');
+        });
+
+        // Expose app for debugging
+        window.jaguarApp = app;
+    </script>
+</body>
+</html>

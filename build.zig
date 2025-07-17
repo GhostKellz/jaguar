@@ -84,6 +84,16 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    // Link system libraries for windowing
+    if (target.result.os.tag == .linux) {
+        exe.linkSystemLibrary("wayland-client");
+        exe.linkSystemLibrary("wayland-egl");
+        exe.linkSystemLibrary("EGL");
+        exe.linkSystemLibrary("GL");
+        exe.linkSystemLibrary("xkbcommon");
+        exe.linkLibC();
+    }
+
     // This declares intent for the executable to be installed into the
     // install prefix when running `zig build` (i.e. when executing the default
     // step). By default the install prefix is `zig-out/` but can be overridden
@@ -161,6 +171,72 @@ pub fn build(b: *std.Build) void {
     const run_simple = b.addRunArtifact(simple_example);
     examples_step.dependOn(&run_simple.step);
 
+    const gpu_demo = b.addExecutable(.{
+        .name = "gpu_demo",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/gpu_demo.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "jaguar", .module = mod },
+            },
+        }),
+    });
+
+    const run_gpu_demo = b.addRunArtifact(gpu_demo);
+    examples_step.dependOn(&run_gpu_demo.step);
+
+    // Wayland demo
+    const wayland_demo = b.addExecutable(.{
+        .name = "wayland_demo",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/wayland_demo.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "jaguar", .module = mod },
+            },
+        }),
+    });
+
+    // Link Wayland libraries for the demo
+    if (target.result.os.tag == .linux) {
+        wayland_demo.linkSystemLibrary("wayland-client");
+        wayland_demo.linkSystemLibrary("wayland-egl");
+        wayland_demo.linkSystemLibrary("EGL");
+        wayland_demo.linkSystemLibrary("GL");
+        wayland_demo.linkSystemLibrary("xkbcommon");
+        wayland_demo.linkLibC();
+    }
+
+    const run_wayland_demo = b.addRunArtifact(wayland_demo);
+    examples_step.dependOn(&run_wayland_demo.step);
+
+    const window_demo = b.addExecutable(.{
+        .name = "window_demo",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/window_demo.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "jaguar", .module = mod },
+            },
+        }),
+    });
+
+    // Link Wayland libraries for the window demo
+    if (target.result.os.tag == .linux) {
+        window_demo.linkSystemLibrary("wayland-client");
+        window_demo.linkSystemLibrary("wayland-egl");
+        window_demo.linkSystemLibrary("EGL");
+        window_demo.linkSystemLibrary("GL");
+        window_demo.linkSystemLibrary("xkbcommon");
+        window_demo.linkLibC();
+    }
+
+    const run_window_demo = b.addRunArtifact(window_demo);
+    examples_step.dependOn(&run_window_demo.step);
+
     // WASM build target
     const wasm_step = b.step("wasm", "Build for WebAssembly");
 
@@ -170,9 +246,9 @@ pub fn build(b: *std.Build) void {
     });
 
     const wasm_exe = b.addExecutable(.{
-        .name = "jaguar-web",
+        .name = "jaguar-app",
         .root_module = b.createModule(.{
-            .root_source_file = b.path("src/wasm_main.zig"),
+            .root_source_file = b.path("examples/wasm_app.zig"),
             .target = wasm_target,
             .optimize = optimize,
             .imports = &.{
@@ -182,8 +258,40 @@ pub fn build(b: *std.Build) void {
     });
 
     wasm_exe.entry = .disabled; // WASM doesn't need a traditional main
-    b.installArtifact(wasm_exe);
-    wasm_step.dependOn(&b.addInstallArtifact(wasm_exe, .{}).step);
+    wasm_exe.rdynamic = true; // Export symbols for JavaScript
+
+    const wasm_install = b.addInstallArtifact(wasm_exe, .{});
+    wasm_step.dependOn(&wasm_install.step);
+
+    // Copy web assets
+    const copy_web_assets = b.addInstallDirectory(.{
+        .source_dir = b.path("web"),
+        .install_dir = .prefix,
+        .install_subdir = "web",
+    });
+    wasm_step.dependOn(&copy_web_assets.step);
+
+    // ZEKE WASM app (AI chat application)
+    const zeke_wasm_step = b.step("zeke-wasm", "Build ZEKE AI chat app for WebAssembly");
+
+    const zeke_wasm_exe = b.addExecutable(.{
+        .name = "zeke-app",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("examples/zeke_wasm.zig"),
+            .target = wasm_target,
+            .optimize = optimize,
+            .imports = &.{
+                .{ .name = "jaguar", .module = mod },
+            },
+        }),
+    });
+
+    zeke_wasm_exe.entry = .disabled;
+    zeke_wasm_exe.rdynamic = true;
+
+    const zeke_wasm_install = b.addInstallArtifact(zeke_wasm_exe, .{});
+    zeke_wasm_step.dependOn(&zeke_wasm_install.step);
+    zeke_wasm_step.dependOn(&copy_web_assets.step);
 
     // Just like flags, top level steps are also listed in the `--help` menu.
     //
